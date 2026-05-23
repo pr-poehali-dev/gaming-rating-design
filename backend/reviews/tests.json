@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "GET ?action=list&gameId=1 — список отзывов",
+      "method": "GET",
+      "path": "/?action=list&gameId=1",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST ?action=create без токена — 401",
+      "method": "POST",
+      "path": "/?action=create",
+      "body": {"gameId": 1, "rating": 5, "text": "Очень классная игра, всем рекомендую!"},
+      "expectedStatus": 401,
+      "bodyMatcher": "partial",
+      "expectedBody": {"error": "string"}
+    },
+    {
+      "name": "POST ?action=vote без токена — 401",
+      "method": "POST",
+      "path": "/?action=vote",
+      "body": {"reviewId": 1, "isHelpful": true},
+      "expectedStatus": 401,
+      "bodyMatcher": "partial",
+      "expectedBody": {"error": "string"}
+    }
+  ]
+}
