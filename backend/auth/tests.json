@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "GET ?action=me без токена — 401",
+      "method": "GET",
+      "path": "/?action=me",
+      "expectedStatus": 401,
+      "bodyMatcher": "partial",
+      "expectedBody": {"error": "Не авторизован"}
+    },
+    {
+      "name": "POST ?action=register — успешная регистрация",
+      "method": "POST",
+      "path": "/?action=register",
+      "body": {"username": "testgr99", "email": "testgr99@example.com", "password": "password123"},
+      "expectedStatus": 200,
+      "bodyMatcher": "partial",
+      "expectedBody": {"token": "string"}
+    },
+    {
+      "name": "POST ?action=login — неверный пароль",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {"email": "testgr99@example.com", "password": "wrongpass"},
+      "expectedStatus": 400,
+      "bodyMatcher": "partial",
+      "expectedBody": {"error": "string"}
+    }
+  ]
+}

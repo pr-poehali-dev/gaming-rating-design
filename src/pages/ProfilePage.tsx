@@ -1,6 +1,7 @@
 import Icon from "@/components/ui/icon";
 import LevelBadge from "@/components/LevelBadge";
 import { CURRENT_USER, GAMES } from "@/data/games";
+import { AuthUser } from "@/lib/auth";
 
 const LEVEL_LABELS = {
   novice: "Новичок",
@@ -31,8 +32,39 @@ const ACTIVITY = [
   { type: "challenge", text: "Прошёл 2/3 челленджа «Неделя хорроров»", date: "Неделю назад", xp: 0 },
 ];
 
-export default function ProfilePage() {
-  const user = CURRENT_USER;
+interface ProfilePageProps {
+  user: AuthUser | null;
+  onOpenAuth: () => void;
+}
+
+export default function ProfilePage({ user: authUser, onOpenAuth }: ProfilePageProps) {
+  if (!authUser) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center animate-fade-in">
+        <div className="text-5xl mb-4">🎮</div>
+        <h2 className="font-display text-2xl font-bold mb-2">Войдите, чтобы увидеть профиль</h2>
+        <p className="text-muted-foreground mb-6">Отслеживайте прогресс, достижения и историю оценок</p>
+        <button
+          onClick={onOpenAuth}
+          className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all"
+        >
+          Войти / Зарегистрироваться
+        </button>
+      </div>
+    );
+  }
+
+  // Мёрджим данные реального пользователя с демо-данными (достижения, активность)
+  const user = {
+    ...CURRENT_USER,
+    name: authUser.username,
+    level: authUser.level,
+    xp: authUser.xp,
+    xpMax: 500,
+    coins: authUser.coins,
+    ratingsCount: authUser.ratingsCount,
+    reviewsCount: authUser.reviewsCount,
+  };
   const xpProgress = (user.xp / user.xpMax) * 100;
 
   const recentGames = GAMES.slice(0, 4);

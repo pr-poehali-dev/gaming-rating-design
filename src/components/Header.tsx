@@ -1,12 +1,19 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import { CURRENT_USER } from "@/data/games";
+import { AuthUser } from "@/lib/auth";
 
 const LEVEL_LABELS = {
   novice: "Новичок",
   amateur: "Любитель",
   expert: "Эксперт",
   guru: "Гуру",
+};
+
+const LEVEL_BADGE_CLS = {
+  novice: "badge-novice",
+  amateur: "badge-amateur",
+  expert: "badge-expert",
+  guru: "badge-guru",
 };
 
 interface HeaderProps {
@@ -16,9 +23,16 @@ interface HeaderProps {
   onToggleDark: () => void;
   onNotificationDismiss?: () => void;
   showNotification?: boolean;
+  user: AuthUser | null;
+  onOpenAuth: () => void;
+  onLogout: () => void;
 }
 
-export default function Header({ currentPage, onNavigate, darkMode, onToggleDark, showNotification, onNotificationDismiss }: HeaderProps) {
+export default function Header({
+  currentPage, onNavigate, darkMode, onToggleDark,
+  showNotification, onNotificationDismiss,
+  user, onOpenAuth, onLogout,
+}: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = [
@@ -35,7 +49,7 @@ export default function Header({ currentPage, onNavigate, darkMode, onToggleDark
         <div className="bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between text-sm animate-fade-in">
           <div className="flex items-center gap-2">
             <span>🏆</span>
-            <span>Вы получили значок «Аналитик»! +50 XP</span>
+            <span>Добро пожаловать на GameRate! Оцени первую игру и получи +10 XP</span>
           </div>
           <button onClick={onNotificationDismiss} className="hover:opacity-70 transition-opacity">
             <Icon name="X" size={16} />
@@ -78,20 +92,45 @@ export default function Header({ currentPage, onNavigate, darkMode, onToggleDark
                 <Icon name={darkMode ? "Sun" : "Moon"} size={18} />
               </button>
 
-              <button
-                onClick={() => onNavigate("profile")}
-                className="flex items-center gap-2 bg-secondary rounded-xl px-3 py-1.5 hover:bg-primary/10 transition-all"
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold">
-                  {CURRENT_USER.name[0]}
-                </div>
-                <div className="hidden sm:block text-left">
-                  <div className="text-xs font-semibold leading-tight">{CURRENT_USER.name}</div>
-                  <div className={`text-xs badge-expert rounded px-1 leading-tight inline-block`}>
-                    {LEVEL_LABELS[CURRENT_USER.level]}
+              {user ? (
+                <div className="relative group">
+                  <button
+                    onClick={() => onNavigate("profile")}
+                    className="flex items-center gap-2 bg-secondary rounded-xl px-3 py-1.5 hover:bg-primary/10 transition-all"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold">
+                      {user.username[0].toUpperCase()}
+                    </div>
+                    <div className="hidden sm:block text-left">
+                      <div className="text-xs font-semibold leading-tight">{user.username}</div>
+                      <span className={`text-xs ${LEVEL_BADGE_CLS[user.level]} rounded px-1 leading-tight inline-block`}>
+                        {LEVEL_LABELS[user.level]}
+                      </span>
+                    </div>
+                  </button>
+                  <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-lg p-1 min-w-32 hidden group-hover:block z-50">
+                    <button
+                      onClick={() => onNavigate("profile")}
+                      className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-secondary transition-all flex items-center gap-2"
+                    >
+                      <Icon name="User" size={14} /> Профиль
+                    </button>
+                    <button
+                      onClick={onLogout}
+                      className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-secondary transition-all flex items-center gap-2 text-destructive"
+                    >
+                      <Icon name="LogOut" size={14} /> Выйти
+                    </button>
                   </div>
                 </div>
-              </button>
+              ) : (
+                <button
+                  onClick={onOpenAuth}
+                  className="bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-all"
+                >
+                  Войти
+                </button>
+              )}
 
               <button
                 className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-secondary transition-all"
@@ -119,6 +158,22 @@ export default function Header({ currentPage, onNavigate, darkMode, onToggleDark
                   {item.label}
                 </button>
               ))}
+              {!user && (
+                <button
+                  onClick={() => { onOpenAuth(); setMobileOpen(false); }}
+                  className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold bg-primary text-primary-foreground mt-1"
+                >
+                  Войти / Зарегистрироваться
+                </button>
+              )}
+              {user && (
+                <button
+                  onClick={() => { onLogout(); setMobileOpen(false); }}
+                  className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-secondary"
+                >
+                  Выйти
+                </button>
+              )}
             </div>
           </div>
         )}
