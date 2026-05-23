@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "GET ?action=list — список игр",
+      "method": "GET",
+      "path": "/?action=list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST ?action=rate без токена — 401",
+      "method": "POST",
+      "path": "/?action=rate",
+      "body": {"gameId": 1, "rating": 5},
+      "expectedStatus": 401,
+      "bodyMatcher": "partial",
+      "expectedBody": {"error": "string"}
+    },
+    {
+      "name": "GET ?action=userRatings без токена — пустой массив",
+      "method": "GET",
+      "path": "/?action=userRatings",
+      "expectedStatus": 200
+    }
+  ]
+}

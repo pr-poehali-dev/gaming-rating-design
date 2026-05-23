@@ -3,7 +3,9 @@ import Icon from "@/components/ui/icon";
 import StarRating from "@/components/StarRating";
 import LevelBadge from "@/components/LevelBadge";
 import RateModal from "@/components/RateModal";
-import { GAMES, REVIEWS } from "@/data/games";
+import { REVIEWS } from "@/data/games";
+import { useGames } from "@/contexts/GamesContext";
+import { rateGame } from "@/lib/games";
 
 interface GamePageProps {
   gameId: number;
@@ -12,21 +14,36 @@ interface GamePageProps {
 }
 
 export default function GamePage({ gameId, onBack, onGameClick }: GamePageProps) {
-  const game = GAMES.find((g) => g.id === gameId);
+  const { games, myRatings, updateGameRating, setMyRating } = useGames();
+  const game = games.find((g) => g.id === gameId);
   const [showRateModal, setShowRateModal] = useState(false);
   const [reviewSort, setReviewSort] = useState("По полезности");
   const [addedToList, setAddedToList] = useState(false);
   const [helpfulVotes, setHelpfulVotes] = useState<Record<number, 'helpful' | 'not'>>({});
   const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   if (!game) return null;
 
   const reviews = REVIEWS.filter((r) => r.gameId === gameId);
-  const similar = GAMES.filter((g) => g.id !== gameId && g.genre === game.genre).slice(0, 3);
+  const similar = games.filter((g) => g.id !== gameId && g.genre === game.genre).slice(0, 3);
+  const myRating = myRatings[gameId];
 
-  const handleRate = (data: { rating: number; criteria: Record<string, number>; comment: string }) => {
-    setSuccessMsg(`Спасибо! Ваша оценка ${data.rating}/5 принята. +15 XP`);
-    setTimeout(() => setSuccessMsg(""), 4000);
+  const handleRate = async (data: { rating: number; criteria: Record<string, number>; comment: string }) => {
+    try {
+      const result = await rateGame(gameId, data.rating, data.criteria, data.comment);
+      updateGameRating(gameId, result.gameRating, result.ratingsCount);
+      setMyRating(gameId, data.rating);
+      if (result.xpGained > 0) {
+        setSuccessMsg(`Спасибо! Оценка ${data.rating}/5 принята. +${result.xpGained} XP`);
+      } else {
+        setSuccessMsg(`Оценка обновлена: ${data.rating}/5`);
+      }
+      setTimeout(() => setSuccessMsg(""), 4000);
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Ошибка");
+      setTimeout(() => setErrorMsg(""), 4000);
+    }
   };
 
   const handleHelpful = (reviewId: number, type: 'helpful' | 'not') => {
@@ -45,6 +62,11 @@ export default function GamePage({ gameId, onBack, onGameClick }: GamePageProps)
       {successMsg && (
         <div className="fixed top-20 right-4 z-50 bg-green-500 text-white px-4 py-3 rounded-xl shadow-lg text-sm animate-slide-in-right">
           {successMsg}
+        </div>
+      )}
+      {errorMsg && (
+        <div className="fixed top-20 right-4 z-50 bg-destructive text-destructive-foreground px-4 py-3 rounded-xl shadow-lg text-sm animate-slide-in-right">
+          {errorMsg}
         </div>
       )}
 
@@ -109,10 +131,14 @@ export default function GamePage({ gameId, onBack, onGameClick }: GamePageProps)
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setShowRateModal(true)}
-                className="bg-primary text-primary-foreground px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center gap-2 pulse-accent"
+                className={`px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center gap-2 ${
+                  myRating
+                    ? "bg-green-500/15 text-green-600 border border-green-500/30"
+                    : "bg-primary text-primary-foreground pulse-accent"
+                }`}
               >
                 <Icon name="Star" size={16} />
-                Оценить
+                {myRating ? `Ваша оценка: ${myRating}/5` : "Оценить"}
               </button>
               <button className="bg-secondary text-secondary-foreground px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-secondary/70 transition-all flex items-center gap-2">
                 <Icon name="MessageSquare" size={16} />

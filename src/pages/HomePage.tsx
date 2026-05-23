@@ -3,7 +3,8 @@ import Icon from "@/components/ui/icon";
 import GameCard from "@/components/GameCard";
 import StarRating from "@/components/StarRating";
 import LevelBadge from "@/components/LevelBadge";
-import { GAMES, TOP5_WEEK, CHALLENGES, LEADERBOARD } from "@/data/games";
+import { TOP5_WEEK, CHALLENGES, LEADERBOARD } from "@/data/games";
+import { useGames } from "@/contexts/GamesContext";
 
 const GENRES = ["Все", "RPG", "Шутер", "Приключения", "Хоррор", "Экшен", "Стратегия"];
 const PLATFORMS = ["Все", "PC", "PS5", "Xbox", "Switch"];
@@ -15,13 +16,14 @@ interface HomePageProps {
 }
 
 export default function HomePage({ onGameClick, onNavigate }: HomePageProps) {
+  const { games } = useGames();
   const [search, setSearch] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("Все");
   const [selectedPlatform, setSelectedPlatform] = useState("Все");
   const [sortBy, setSortBy] = useState("По рейтингу");
   const [showFilters, setShowFilters] = useState(false);
 
-  const filtered = GAMES
+  const filtered = games
     .filter((g) => {
       const matchSearch = g.title.toLowerCase().includes(search.toLowerCase());
       const matchGenre = selectedGenre === "Все" || g.genre === selectedGenre;

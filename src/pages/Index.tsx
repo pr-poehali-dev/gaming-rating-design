@@ -9,8 +9,26 @@ import CommunityPage from "./CommunityPage";
 import ChallengesPage from "./ChallengesPage";
 import RatingsPage from "./RatingsPage";
 import { getMe, logout as authLogout, AuthUser } from "@/lib/auth";
+import { GamesProvider, useGames } from "@/contexts/GamesContext";
+
+function IndexInner() {
+  const { refresh } = useGames();
+  return <IndexContent onAuthChange={refresh} />;
+}
 
 export default function Index() {
+  return (
+    <GamesProvider>
+      <IndexInner />
+    </GamesProvider>
+  );
+}
+
+interface IndexContentProps {
+  onAuthChange: () => void;
+}
+
+function IndexContent({ onAuthChange }: IndexContentProps) {
   const [page, setPage] = useState("home");
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const [darkMode, setDarkMode] = useState(false);
@@ -57,11 +75,13 @@ export default function Index() {
     setUser(null);
     setShowNotification(true);
     setPage("home");
+    onAuthChange();
   };
 
   const handleAuthSuccess = (u: AuthUser) => {
     setUser(u);
     setShowNotification(false);
+    onAuthChange();
   };
 
   if (!authChecked) {

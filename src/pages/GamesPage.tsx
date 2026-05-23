@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import GameCard from "@/components/GameCard";
-import { GAMES } from "@/data/games";
+import { useGames } from "@/contexts/GamesContext";
 
 const GENRES = ["Все", "RPG", "Шутер", "Приключения", "Хоррор", "Экшен", "Стратегия"];
 const PLATFORMS = ["Все", "PC", "PS5", "Xbox", "Switch"];
@@ -13,6 +13,7 @@ interface GamesPageProps {
 }
 
 export default function GamesPage({ onGameClick }: GamesPageProps) {
+  const { games } = useGames();
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState("Все");
   const [platform, setPlatform] = useState("Все");
@@ -20,7 +21,7 @@ export default function GamesPage({ onGameClick }: GamesPageProps) {
   const [minRating, setMinRating] = useState("Любой рейтинг");
   const [sort, setSort] = useState("По рейтингу");
 
-  const filtered = GAMES
+  const filtered = games
     .filter((g) => {
       const matchSearch = g.title.toLowerCase().includes(search.toLowerCase());
       const matchGenre = genre === "Все" || g.genre === genre;
